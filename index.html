@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ivaan's School Map · Hägerneholm, Täby</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#0d0c0a;
+  --paper:#f5f0e8;
+  --gold:#c9a84c;
+  --gold-light:#e8d89a;
+  --rust:#b85c38;
+  --teal:#3a7d74;
+  --teal-light:#e6f5f0;
+  --cream:#faf8f3;
+  --border:#ddd8cc;
+  --muted:#7a756c;
+  --warn:#b85c38;
+  --good:#3a7d74;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Cormorant Garamond',Georgia,serif;
+  background:var(--paper);
+  color:var(--ink);
+  min-height:100vh;
+  line-height:1.6;
+}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:var(--ink);
+  padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:56px;
+  border-bottom:1px solid var(--gold);
+}
+.nav-brand{
+  font-family:'DM Mono',monospace;
+  font-size:11px;letter-spacing:.15em;color:var(--gold);text-transform:uppercase;
+}
+.nav-tabs{display:flex;gap:4px}
+.nav-tab{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.08em;
+  padding:6px 14px;border-radius:3px;border:none;
+  background:transparent;color:rgba(245,240,232,.5);
+  cursor:pointer;transition:all .2s;text-transform:uppercase;
+}
+.nav-tab:hover{color:var(--paper);background:rgba(255,255,255,.08)}
+.nav-tab.active{background:var(--gold);color:var(--ink);font-weight:500}
+
+/* SCREENS */
+.screen{display:none;min-height:calc(100vh - 56px)}
+.screen.active{display:block}
+
+/* HERO */
+.hero{
+  padding:4rem 2rem 3rem;
+  max-width:960px;margin:0 auto;
+  border-bottom:1px solid var(--border);
+}
+.hero-eyebrow{
+  font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;
+  color:var(--gold);text-transform:uppercase;margin-bottom:1rem;
+}
+.hero h1{
+  font-size:clamp(2rem,5vw,3.5rem);font-weight:400;
+  line-height:1.15;margin-bottom:1rem;
+}
+.hero h1 em{font-style:italic;color:var(--teal)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:560px;line-height:1.7}
+.hero-meta{
+  display:flex;gap:2rem;margin-top:2rem;flex-wrap:wrap;
+}
+.hero-stat{
+  display:flex;flex-direction:column;gap:2px;
+}
+.hero-stat-num{font-size:1.8rem;font-weight:500;color:var(--teal)}
+.hero-stat-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+
+/* SECTION */
+.section{padding:3rem 2rem;max-width:960px;margin:0 auto}
+.section-head{
+  display:flex;align-items:baseline;gap:1rem;margin-bottom:2rem;
+  padding-bottom:1rem;border-bottom:1px solid var(--border);
+}
+.section-label{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;
+  color:var(--gold);text-transform:uppercase;
+}
+.section-title{font-size:1.6rem;font-weight:400}
+
+/* MIND MAP */
+.map-container{
+  background:var(--cream);border:1px solid var(--border);border-radius:8px;
+  padding:2rem;overflow-x:auto;
+}
+.map-svg{display:block;margin:0 auto;width:100%;max-width:800px}
+
+/* COMPARE GRID */
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{
+  background:var(--cream);border:1px solid var(--border);border-radius:8px;
+  padding:1.5rem;transition:all .2s;position:relative;
+}
+.card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 4px 20px rgba(58,125,116,.1)}
+.card.featured{border:2px solid var(--gold)}
+.card-tag{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:.75rem;display:block;
+}
+.card-tag.intl{color:var(--teal)}
+.card-name{font-size:1.2rem;font-weight:500;margin-bottom:.25rem}
+.card-desc{font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.5}
+.stat{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.stat:last-of-type{border-bottom:none}
+.stat-k{color:var(--muted)}
+.stat-v{font-weight:500;font-family:'DM Mono',monospace;font-size:.8rem}
+.stat-v.good{color:var(--good)}
+.stat-v.warn{color:var(--warn)}
+.stat-v.ok{color:#7a5c20}
+.card-cta{
+  display:inline-block;margin-top:1.25rem;
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal);
+  padding-bottom:1px;transition:opacity .2s;
+}
+.card-cta:hover{opacity:.7}
+.badge{
+  position:absolute;top:1rem;right:1rem;
+  font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--gold);color:var(--ink);padding:3px 8px;border-radius:2px;font-weight:500;
+}
+
+/* DECISION TREE */
+.tree-wrap{max-width:680px}
+.tree-q{margin-bottom:2rem}
+.q-label{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:.5rem;
+}
+.q-text{font-size:1.1rem;font-weight:500;margin-bottom:1rem}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:500px){.opts{grid-template-columns:1fr}}
+.opt{
+  padding:12px 16px;border-radius:6px;border:1px solid var(--border);
+  background:var(--cream);color:var(--ink);font-family:'Cormorant Garamond',serif;
+  font-size:.95rem;cursor:pointer;text-align:left;transition:all .2s;line-height:1.4;
+}
+.opt:hover{border-color:var(--teal);background:var(--teal-light)}
+.opt.selected{border-color:var(--teal);background:var(--teal-light);color:var(--teal)}
+.result-box{
+  margin-top:2rem;padding:1.5rem 2rem;
+  border-left:3px solid var(--gold);background:var(--cream);border-radius:0 6px 6px 0;
+  font-size:.95rem;line-height:1.7;display:none;
+}
+.result-box.show{display:block}
+.result-box strong{font-weight:600;color:var(--ink)}
+.result-box a{color:var(--teal)}
+.reset-btn{
+  margin-top:1rem;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);background:none;border:none;cursor:pointer;
+}
+.reset-btn:hover{color:var(--ink)}
+
+/* CHECKLIST */
+.progress-wrap{margin-bottom:2rem}
+.progress-meta{display:flex;justify-content:space-between;margin-bottom:.5rem;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.progress-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.progress-fill{height:3px;background:var(--gold);border-radius:2px;transition:width .4s ease}
+
+.cl-section{margin-bottom:2.5rem}
+.cl-section-title{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);
+}
+.cl-item{
+  display:flex;align-items:flex-start;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--border);cursor:pointer;transition:all .15s;
+}
+.cl-item:last-child{border-bottom:none}
+.cl-item:hover{padding-left:6px}
+.cl-box{
+  width:20px;height:20px;min-width:20px;border-radius:4px;
+  border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
+  margin-top:2px;transition:all .2s;
+}
+.cl-box.done{background:var(--teal);border-color:var(--teal)}
+.cl-check{font-size:12px;color:white;display:none}
+.cl-box.done .cl-check{display:block}
+.cl-body{flex:1}
+.cl-text{font-size:1rem;line-height:1.4}
+.cl-text.done{text-decoration:line-through;color:var(--muted)}
+.cl-hint{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);margin-top:2px;line-height:1.4}
+.cl-link{
+  display:inline-block;margin-top:4px;
+  font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.05em;
+  color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal-light);
+}
+.cl-link:hover{border-bottom-color:var(--teal)}
+
+/* TALKING POINTS */
+.tp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.tp-card{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:1.5rem}
+.tp-num{
+  font-family:'DM Mono',monospace;font-size:1.8rem;color:var(--gold-light);
+  margin-bottom:.5rem;line-height:1;
+}
+.tp-title{font-size:1.1rem;font-weight:500;margin-bottom:.75rem}
+.tp-body{font-size:.9rem;color:var(--muted);line-height:1.7}
+.tp-link{
+  display:inline-block;margin-top:1rem;
+  font-family:'DM Mono',monospace;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--teal);text-decoration:none;border-bottom:1px solid var(--teal);padding-bottom:1px;
+}
+.tp-link:hover{opacity:.7}
+
+/* MOM FRIEND SHARE */
+.share-box{
+  background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:2rem;
+  max-width:680px;
+}
+.share-title{font-size:1.3rem;font-weight:500;margin-bottom:.5rem}
+.share-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.5rem;font-family:'DM Mono',monospace}
+.share-content{
+  font-size:.9rem;line-height:1.8;white-space:pre-line;color:var(--ink);
+  border-left:2px solid var(--gold);padding-left:1.25rem;margin-bottom:1.5rem;
+}
+.copy-btn{
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:10px 20px;border:1px solid var(--ink);border-radius:4px;background:var(--ink);
+  color:var(--paper);cursor:pointer;transition:all .2s;
+}
+.copy-btn:hover{background:var(--teal);border-color:var(--teal)}
+.copy-btn.copied{background:var(--teal);border-color:var(--teal)}
+
+/* KO-FI */
+.kofi-bar{
+  background:var(--ink);padding:1rem 2rem;text-align:center;margin-top:4rem;
+  font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,.5);
+}
+.kofi-bar a{color:var(--gold);text-decoration:none}
+.kofi-bar a:hover{text-decoration:underline}
+
+/* UTILS */
+@media(max-width:600px){
+  nav{padding:0 1rem}
+  .nav-tab{font-size:9px;padding:5px 8px}
+  .hero,section,.section{padding:2rem 1rem}
+  .hero h1{font-size:1.8rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">Ivaan · School Map · Täby 2025</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="show('overview',this)">Overview</button>
+    <button class="nav-tab" onclick="show('compare',this)">Compare</button>
+    <button class="nav-tab" onclick="show('tree',this)">Decide</button>
+    <button class="nav-tab" onclick="show('check',this)">Checklist</button>
+    <button class="nav-tab" onclick="show('aniket',this)">For Aniket</button>
+    <button class="nav-tab" onclick="show('share',this)">Share</button>
+  </div>
+</nav>
+
+<!-- OVERVIEW -->
+<div class="screen active" id="s-overview">
+  <div class="hero">
+    <div class="hero-eyebrow">Education research · Hägerneholm, Täby</div>
+    <h1>Ivaan's school universe, <em>mapped.</em></h1>
+    <p class="hero-sub">Every option within reach of Arningetorpsvägen 11B — researched, compared, and ranked so you can decide with confidence.</p>
+    <div class="hero-meta">
+      <div class="hero-stat"><span class="hero-stat-num">130m</span><span class="hero-stat-label">From door to school</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">5</span><span class="hero-stat-label">Options researched</span></div>
+      <div class="hero-stat"><span class="hero-stat-num">1</span><span class="hero-stat-label">Action needed today</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">Visual map</span>
+      <span class="section-title">The full picture</span>
+    </div>
+    <div class="map-container">
+      <svg class="map-svg" viewBox="0 0 800 520" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="a" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
+            <circle cx="3.5" cy="3.5" r="2" fill="#c9a84c" opacity=".6"/>
+          </marker>
+        </defs>
+        <!-- connectors -->
+        <line x1="400" y1="260" x2="190" y2="130" stroke="#ddd8cc" stroke-width="1.5" marker-end="url(#a)"/>
+        <line x1="400" y1="260" x2="610" y2="130" stroke="#ddd8cc" stroke-width="1.5" marker-end="url(#a)"/>
+        <line x1="400" y1="260" x2="140" y2="300" stroke="#ddd8cc" stroke-width="1.5" marker-end="url(#a)"/>
+        <line x1="400" y1="260" x2="660" y2="300" stroke="#ddd8cc" stroke-width="1.5" marker-end="url(#a)"/>
+        <line x1="400" y1="260" x2="250" y2="420" stroke="#ddd8cc" stroke-width="1.5" marker-end="url(#a)"/>
+        <line x1="400" y1="260" x2="580" y2="420" stroke="#ddd8cc" stroke-width="1.5" marker-end="url(#a)"/>
+
+        <!-- CENTER -->
+        <rect x="308" y="228" width="184" height="64" rx="10" fill="#0d0c0a"/>
+        <text x="400" y="252" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" font-weight="500" fill="#f5f0e8">Ivaan · age now</text>
+        <text x="400" y="272" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#c9a84c">Arningetorpsvägen 11B</text>
+
+        <!-- TOP LEFT: Hägerneholm Förskola -->
+        <rect x="80" y="80" width="220" height="80" rx="8" fill="#f5f0e8" stroke="#ddd8cc" stroke-width="1"/>
+        <text x="190" y="104" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" font-weight="500" fill="#0d0c0a">Hägerneholm Förskola</text>
+        <text x="190" y="122" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">Kommunal · 130m walk</text>
+        <text x="190" y="140" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">151 children · 30.6% certified</text>
+        <rect x="80" y="80" width="4" height="80" rx="2" fill="#3a7d74"/>
+
+        <!-- TOP RIGHT: Futuraskolan — STARRED -->
+        <rect x="494" y="80" width="232" height="80" rx="8" fill="#f5f0e8" stroke="#c9a84c" stroke-width="2"/>
+        <text x="610" y="100" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#c9a84c">★ BEST FOR EXPAT FAMILIES</text>
+        <text x="610" y="118" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" font-weight="500" fill="#0d0c0a">Futuraskolan Intl Preschool</text>
+        <text x="610" y="136" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">Bilingual EN+SV · IEYC · Näsby Park</text>
+        <text x="610" y="152" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#3a7d74">futuraskolan.se/preschools/nasby-park</text>
+
+        <!-- LEFT: Olympica -->
+        <rect x="20" y="265" width="200" height="70" rx="8" fill="#f5f0e8" stroke="#ddd8cc" stroke-width="1"/>
+        <text x="120" y="288" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="13" font-weight="500" fill="#0d0c0a">Olympicaförskolan</text>
+        <text x="120" y="305" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">Montessori · Täby Centrum</text>
+        <text x="120" y="322" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">34 children · very intimate</text>
+        <rect x="20" y="265" width="4" height="70" rx="2" fill="#b85c38"/>
+
+        <!-- RIGHT: IES — URGENT -->
+        <rect x="560" y="265" width="220" height="70" rx="8" fill="#f5f0e8" stroke="#c9a84c" stroke-width="2"/>
+        <text x="670" y="284" text-anchor="middle" font-family="DM Mono,monospace" font-size="9" fill="#b85c38">⚡ REGISTER QUEUE NOW</text>
+        <text x="670" y="300" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="13" font-weight="500" fill="#0d0c0a">IES Täby · Years 4–9</text>
+        <text x="670" y="317" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">Bilingual · Structured · High results</text>
+        <text x="670" y="331" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#3a7d74">engelska.se/sv/vara-skolor/taby</text>
+
+        <!-- BOTTOM LEFT: Hägerneholmsskolan -->
+        <rect x="105" y="385" width="290" height="80" rx="8" fill="#f5f0e8" stroke="#ddd8cc" stroke-width="1"/>
+        <text x="250" y="407" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" font-weight="500" fill="#0d0c0a">Hägerneholmsskolan F–9</text>
+        <text x="250" y="425" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">530 pupils · 81% qualified · SALSA +1.0</text>
+        <text x="250" y="443" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">Meritvärde 244.6 · above national avg</text>
+        <rect x="105" y="385" width="4" height="80" rx="2" fill="#3a7d74"/>
+
+        <!-- BOTTOM RIGHT: System -->
+        <rect x="470" y="385" width="240" height="80" rx="8" fill="#f5f0e8" stroke="#ddd8cc" stroke-width="1"/>
+        <text x="590" y="407" text-anchor="middle" font-family="Cormorant Garamond,serif" font-size="14" font-weight="500" fill="#0d0c0a">Täby Skolval System</text>
+        <text x="590" y="425" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">You choose — not assigned</text>
+        <text x="590" y="443" text-anchor="middle" font-family="DM Mono,monospace" font-size="10" fill="#7a756c">Proximity priority · Jan each year</text>
+        <rect x="470" y="385" width="4" height="80" rx="2" fill="#c9a84c"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARE -->
+<div class="screen" id="s-compare">
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">Side by side</span>
+      <span class="section-title">All options compared</span>
+    </div>
+    <div class="compare-grid">
+
+      <div class="card">
+        <span class="card-tag">Current area · förskola</span>
+        <div class="card-name">Hägerneholm Förskola</div>
+        <div class="card-desc">Kommunal · Täby Kommun · 130m from 11B</div>
+        <div class="stat"><span class="stat-k">Children</span><span class="stat-v">151</span></div>
+        <div class="stat"><span class="stat-k">Staff / child</span><span class="stat-v ok">5.6 per årsarbetare</span></div>
+        <div class="stat"><span class="stat-k">Certified teachers</span><span class="stat-v warn">30.6%</span></div>
+        <div class="stat"><span class="stat-k">International vibe</span><span class="stat-v warn">Low</span></div>
+        <div class="stat"><span class="stat-k">Inspection issues</span><span class="stat-v good">None found</span></div>
+        <div class="stat"><span class="stat-k">Distance from 11B</span><span class="stat-v good">130m walk</span></div>
+        <a class="card-cta" href="https://www.taby.se/forskola-och-skola/forskola-och-pedagogisk-omsorg/" target="_blank">Official info →</a>
+      </div>
+
+      <div class="card featured">
+        <div class="badge">Best pick</div>
+        <span class="card-tag intl">Bilingual · International · Förskola</span>
+        <div class="card-name">Futuraskolan Intl Preschool</div>
+        <div class="card-desc">Private · EN+SV · IEYC curriculum · Näsby Park</div>
+        <div class="stat"><span class="stat-k">Language</span><span class="stat-v good">English + Swedish</span></div>
+        <div class="stat"><span class="stat-k">Curriculum</span><span class="stat-v good">Swedish + IEYC</span></div>
+        <div class="stat"><span class="stat-k">International crowd</span><span class="stat-v good">Yes — staff too</span></div>
+        <div class="stat"><span class="stat-k">Inspection issues</span><span class="stat-v good">None found</span></div>
+        <div class="stat"><span class="stat-k">Distance from 11B</span><span class="stat-v ok">5–10 min drive</span></div>
+        <div class="stat"><span class="stat-k">Admission</span><span class="stat-v ok">Queue — apply early</span></div>
+        <a class="card-cta" href="https://futuraskolan.se/preschools/nasby-park/" target="_blank">Visit site + apply →</a>
+      </div>
+
+      <div class="card">
+        <span class="card-tag">Montessori · Förskola</span>
+        <div class="card-name">Olympicaförskolan</div>
+        <div class="card-desc">Montessori + sport · Täby Centrum · Ages 1–5</div>
+        <div class="stat"><span class="stat-k">Size</span><span class="stat-v good">34 children (very small)</span></div>
+        <div class="stat"><span class="stat-k">Pedagogy</span><span class="stat-v good">Montessori + rörelse</span></div>
+        <div class="stat"><span class="stat-k">International vibe</span><span class="stat-v warn">Low</span></div>
+        <div class="stat"><span class="stat-k">Distance from 11B</span><span class="stat-v ok">~10 min drive</span></div>
+        <a class="card-cta" href="https://olympica.se/taby/taby-centrum/" target="_blank">Olympica website →</a>
+      </div>
+
+      <div class="card">
+        <span class="card-tag">Primary school F–9</span>
+        <div class="card-name">Hägerneholmsskolan</div>
+        <div class="card-desc">Kommunal · F–9 · Opened 2019 · 130m from 11B</div>
+        <div class="stat"><span class="stat-k">Pupils</span><span class="stat-v">530</span></div>
+        <div class="stat"><span class="stat-k">Qualified teachers</span><span class="stat-v good">81% (nat avg 74%)</span></div>
+        <div class="stat"><span class="stat-k">Meritvärde yr 9</span><span class="stat-v ok">244.6 (nat avg 227)</span></div>
+        <div class="stat"><span class="stat-k">SALSA residual</span><span class="stat-v good">+1.0 adds value</span></div>
+        <div class="stat"><span class="stat-k">Class size</span><span class="stat-v warn">16.4 (nat avg 12.1)</span></div>
+        <div class="stat"><span class="stat-k">Inspection issues</span><span class="stat-v good">None active</span></div>
+        <a class="card-cta" href="https://www.taby.se/verksamhetswebbar/barn-och-utbildning/hagerneholmsskolan/" target="_blank">School website →</a>
+        <a class="card-cta" style="margin-left:1rem" href="https://skolkoll.se/skola/hagerneholmsskolan-41181908/" target="_blank">Skolkoll data →</a>
+      </div>
+
+      <div class="card featured">
+        <div class="badge">Register now</div>
+        <span class="card-tag intl">Bilingual · Years 4–9 · Friskola</span>
+        <div class="card-name">IES Täby</div>
+        <div class="card-desc">Internationella Engelska Skolan · queue-based</div>
+        <div class="stat"><span class="stat-k">Years</span><span class="stat-v">4–9 only</span></div>
+        <div class="stat"><span class="stat-k">Language</span><span class="stat-v good">English + Swedish</span></div>
+        <div class="stat"><span class="stat-k">Structure</span><span class="stat-v good">High — calm environment</span></div>
+        <div class="stat"><span class="stat-k">International crowd</span><span class="stat-v good">Yes</span></div>
+        <div class="stat"><span class="stat-k">Admission</span><span class="stat-v warn">Queue — register today</span></div>
+        <a class="card-cta" href="https://engelska.se/sv/vara-skolor/taby/ko-antagning/" target="_blank">Join queue now →</a>
+        <a class="card-cta" style="margin-left:1rem" href="https://engelska.se/sv/vara-skolor/taby/" target="_blank">School info →</a>
+      </div>
+
+      <div class="card">
+        <span class="card-tag">The system</span>
+        <div class="card-name">Täby Skolval</div>
+        <div class="card-desc">How school choice and assignment works in Täby</div>
+        <div class="stat"><span class="stat-k">Choice</span><span class="stat-v good">Free — you pick</span></div>
+        <div class="stat"><span class="stat-k">Tiebreaker</span><span class="stat-v">Relative proximity</span></div>
+        <div class="stat"><span class="stat-k">Syskonförtur</span><span class="stat-v good">Yes (from 2026)</span></div>
+        <div class="stat"><span class="stat-k">Skolval window</span><span class="stat-v">January each year</span></div>
+        <div class="stat"><span class="stat-k">Mid-year transfer</span><span class="stat-v good">Allowed if space</span></div>
+        <a class="card-cta" href="https://www.taby.se/forskola-och-skola/grundskola/val-av-skola/" target="_blank">Official skolval info →</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DECIDE -->
+<div class="screen" id="s-tree">
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">Interactive</span>
+      <span class="section-title">Find your answer</span>
+    </div>
+    <div class="tree-wrap">
+
+      <div class="tree-q">
+        <div class="q-label">Question 1 of 3</div>
+        <div class="q-text">What matters most for Ivaan's förskola right now?</div>
+        <div class="opts">
+          <button class="opt" onclick="pick(this,'q1','intl')">International crowd and bilingual environment</button>
+          <button class="opt" onclick="pick(this,'q1','close')">Maximum proximity and zero commute</button>
+          <button class="opt" onclick="pick(this,'q1','small')">Very small and intimate setting</button>
+          <button class="opt" onclick="pick(this,'q1','montessori')">Montessori or alternative pedagogy</button>
+        </div>
+      </div>
+
+      <div class="tree-q">
+        <div class="q-label">Question 2 of 3</div>
+        <div class="q-text">How important is English-medium education long term?</div>
+        <div class="opts">
+          <button class="opt" onclick="pick(this,'q2','critical')">Critical — English must be maintained</button>
+          <button class="opt" onclick="pick(this,'q2','nice')">Nice to have but not essential</button>
+          <button class="opt" onclick="pick(this,'q2','swedish')">Swedish immersion is the priority</button>
+        </div>
+      </div>
+
+      <div class="tree-q">
+        <div class="q-label">Question 3 of 3</div>
+        <div class="q-text">How likely are you to stay in Täby for 5+ years?</div>
+        <div class="opts">
+          <button class="opt" onclick="pick(this,'q3','yes')">Very likely — this is the long-term plan</button>
+          <button class="opt" onclick="pick(this,'q3','maybe')">Possibly — life is open</button>
+          <button class="opt" onclick="pick(this,'q3','no')">Unlikely — we may move again</button>
+        </div>
+      </div>
+
+      <div class="result-box" id="result"></div>
+      <button class="reset-btn" onclick="reset()">↺ Reset answers</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="screen" id="s-check">
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">Action plan</span>
+      <span class="section-title">What to do, in order</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="prog-text">0 of 12 done</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div id="cl-wrap"></div>
+  </div>
+</div>
+
+<!-- FOR ANIKET -->
+<div class="screen" id="s-aniket">
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">Talking points</span>
+      <span class="section-title">For the conversation with Aniket</span>
+    </div>
+    <div class="tp-grid">
+      <div class="tp-card">
+        <div class="tp-num">01</div>
+        <div class="tp-title">130 metres is not a soft benefit</div>
+        <div class="tp-body">The Swedish allocation system uses relative proximity as the tiebreaker. At 130m from Hägerneholmsskolan, Ivaan will almost certainly get priority over any other applicant. That compounds: if a sibling comes later, syskonförtur applies too. You can choose a different school — but you hold the strongest card for this one.</div>
+        <a class="tp-link" href="https://www.taby.se/forskola-och-skola/grundskola/val-av-skola/antagningsprinciper/" target="_blank">How allocation works →</a>
+      </div>
+      <div class="tp-card">
+        <div class="tp-num">02</div>
+        <div class="tp-title">The school is fine. Not top of its class.</div>
+        <div class="tp-body">Hägerneholmsskolan sits 8.7 points below the Täby average on meritvärde, but above the national average. SALSA +1.0 means it's adding genuine value. The real concern is class size — 16.4 vs national average 12.1. Reasonable choice. Not the standout school in a high-performing municipality.</div>
+        <a class="tp-link" href="https://skolkoll.se/skola/hagerneholmsskolan-41181908/" target="_blank">See the full data →</a>
+      </div>
+      <div class="tp-card">
+        <div class="tp-num">03</div>
+        <div class="tp-title">The IES queue decision is now, not later</div>
+        <div class="tp-body">IES Täby is bilingual, English-medium, structured, and the go-to for expat families in northern Stockholm. It only starts at Year 4, so Ivaan won't go for years — but the queue is long. Registering now costs nothing and creates a future option. Waiting until Year 2 may mean losing 4 years of queue position.</div>
+        <a class="tp-link" href="https://engelska.se/sv/vara-skolor/taby/ko-antagning/" target="_blank">Register IES queue →</a>
+      </div>
+      <div class="tp-card">
+        <div class="tp-num">04</div>
+        <div class="tp-title">For the international vibe we want</div>
+        <div class="tp-body">Neither Hägerneholm Förskola nor Abakus (current) has a known expat crowd. Futuraskolan International Preschool in Näsby Park genuinely does — bilingual, IEYC curriculum, families and staff from across the world. It's 5–10 min from 11B. If community matters, this is the move.</div>
+        <a class="tp-link" href="https://futuraskolan.se/preschools/nasby-park/" target="_blank">Visit Futuraskolan →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE -->
+<div class="screen" id="s-share">
+  <div class="section">
+    <div class="section-head">
+      <span class="section-label">For your mom friend</span>
+      <span class="section-title">Ready to send</span>
+    </div>
+    <div class="share-box">
+      <div class="share-title">Hägerneholm, Täby — school & förskola guide</div>
+      <div class="share-sub">Copy and send via WhatsApp or iMessage</div>
+      <div class="share-content" id="share-text">Hey! So I did a deep dive on schools and förskolor for the Hägerneholm area in Täby. Here's what we found — hope it helps you too.
+
+🏫 THE LOCAL SCHOOL
+Hägerneholmsskolan (F–9, right there in the neighbourhood)
+- Above national average academically
+- 81% qualified teachers (national avg is 74%)
+- SALSA score +1.0 — actively adds value for kids
+- Class sizes are bigger than average (16.4 vs 12.1 nationally)
+- No active inspection issues
+- Proximity from Hägerneholm: 130 metres
+Info: taby.se/hagerneholmsskolan
+
+🌍 BEST FOR INTERNATIONAL/EXPAT FAMILIES
+Futuraskolan International Preschool, Näsby Park
+- Bilingual Swedish + English
+- Uses International Early Years Curriculum (IEYC)
+- Staff and families from all over the world
+- 5–10 min drive from Hägerneholm
+- Queue-based — apply early
+Website: futuraskolan.se/preschools/nasby-park
+
+🏫 BILINGUAL SCHOOL (Years 4–9)
+IES Täby — Internationella Engelska Skolan
+- Half the teaching is in English by native teachers
+- Known for calm, structured environment
+- Very popular with expat families in northern Stockholm
+- Queue is long — register your child NOW even if they're small
+Queue: engelska.se/sv/vara-skolor/taby/ko-antagning
+
+📋 HOW SCHOOL CHOICE WORKS IN TÄBY
+You are NOT automatically assigned your nearest school. You choose. Applications open every January via Mitt Skolval. If you're moving mid-year, you can apply at any time.
+Info: taby.se/val-av-skola
+
+✅ WHAT TO DO FIRST
+1. Register for IES Täby queue — free, no obligation
+2. Contact Futuraskolan Näsby Park to check availability
+3. Visit both förskolor at pickup time (4pm weekday) — you'll learn more in 20 min than any website
+4. Ask in Desi Stockholm / Indians in Stockholm Facebook groups for direct family experience
+
+Hope this helps! We're figuring it out too 💛</div>
+      <button class="copy-btn" id="copy-btn" onclick="copyText()">Copy to clipboard</button>
+    </div>
+  </div>
+</div>
+
+<div class="kofi-bar">
+  Built with care · <a href="https://ko-fi.com/shamathakur" target="_blank">Support the work on Ko-fi</a> ·
+  <a href="https://shamathakur.carrd.co/" target="_blank">shamathakur.carrd.co</a>
+</div>
+
+<script>
+function show(id,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+var ans={};
+function pick(el,q,v){
+  el.closest('.tree-q').querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  ans[q]=v;
+  if(ans.q1&&ans.q2&&ans.q3) buildResult();
+}
+function buildResult(){
+  var r=document.getElementById('result');
+  var txt='';
+  if(ans.q1==='intl'||ans.q2==='critical'){
+    txt='<strong>Förskola: Futuraskolan International, Näsby Park.</strong> The only option in this area with a genuine bilingual, multi-national environment. 5–10 min drive from 11B. Apply to their queue now.<br><br><strong>School queue: Register for IES Täby today.</strong> Free, no obligation, but queues are long. Do it now.<br><br><a href="https://futuraskolan.se/preschools/nasby-park/" target="_blank">→ Futuraskolan apply</a> &nbsp; <a href="https://engelska.se/sv/vara-skolor/taby/ko-antagning/" target="_blank">→ IES queue</a>';
+  } else if(ans.q1==='close'){
+    txt='<strong>Förskola: Hägerneholm Förskola.</strong> 130 metres from home, no commute, priority in allocation. Reasonable quality, manageable size, no active issues.<br><br><strong>School: Hägerneholmsskolan</strong> is the natural next step. Above national average, SALSA +1.0, and your proximity gives Ivaan strong priority. Still register for IES queue as long-term insurance.<br><br><a href="https://www.taby.se/forskola-och-skola/" target="_blank">→ Täby förskola info</a> &nbsp; <a href="https://engelska.se/sv/vara-skolor/taby/ko-antagning/" target="_blank">→ IES queue (do this too)</a>';
+  } else if(ans.q1==='montessori'||ans.q1==='small'){
+    txt='<strong>Förskola: Olympicaförskolan, Täby Centrum.</strong> Only 34 children, Montessori pedagogy with a sport/movement focus, 10 min drive.<br><br><strong>School: Hägerneholmsskolan</strong> is closest and fine for F–klass through Year 9. If English matters later, register for IES queue regardless.<br><br><a href="https://olympica.se/taby/taby-centrum/" target="_blank">→ Olympicaförskolan</a> &nbsp; <a href="https://engelska.se/sv/vara-skolor/taby/ko-antagning/" target="_blank">→ IES queue</a>';
+  } else {
+    txt='<strong>Visit both Hägerneholm Förskola and Futuraskolan Näsby Park</strong> before deciding. Your priorities sit in the middle. Either is a reasonable choice — it comes down to whether the international community matters more than convenience.<br><br>Either way: register for IES Täby school queue now.<br><br><a href="https://engelska.se/sv/vara-skolor/taby/ko-antagning/" target="_blank">→ IES queue</a>';
+  }
+  if(ans.q3==='no') txt+='<br><br><em>Since you may move again, lean toward internationally oriented options so Ivaan\'s English and global readiness stay strong across transitions.</em>';
+  r.innerHTML=txt;
+  r.classList.add('show');
+}
+function reset(){
+  ans={};
+  document.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));
+  var r=document.getElementById('result');
+  r.classList.remove('show');r.innerHTML='';
+}
+
+var items=[
+  {section:'Do this today',tasks:[
+    {text:'Register Ivaan for IES Täby school queue',hint:'Free, no obligation. Queue is long. Do not wait.',link:'https://engelska.se/sv/vara-skolor/taby/ko-antagning/',done:false},
+    {text:'Contact Futuraskolan Näsby Park förskola',hint:'Ask about availability and queue position',link:'https://futuraskolan.se/preschools/nasby-park/',done:false},
+  ]},
+  {section:'Visit in person',tasks:[
+    {text:'Visit Hägerneholm Förskola at pickup (4pm weekday)',hint:'Watch children, note staff energy, ask about multilingual support',link:'https://www.taby.se/forskola-och-skola/forskola-och-pedagogisk-omsorg/',done:false},
+    {text:'Visit Futuraskolan Näsby Park',hint:'Ask about IEYC curriculum and international family community',link:'https://futuraskolan.se/preschools/nasby-park/',done:false},
+    {text:'Visit Hägerneholmsskolan at pickup time',hint:'Ask rektor Caroline Alsö about class sizes and specialpedagog access',link:'https://www.taby.se/verksamhetswebbar/barn-och-utbildning/hagerneholmsskolan/',done:false},
+  ]},
+  {section:'Questions to ask at every school',tasks:[
+    {text:'How many staff have been here 2+ years?',hint:'Staff stability = child stability',done:false},
+    {text:'How do you support multilingual children?',hint:'Swedish + English + home language (Marathi/Hindi)',done:false},
+    {text:'Is there a specialpedagog on site or only via referral?',hint:'Critical for any additional support needs',done:false},
+    {text:'What does week one look like for a new child from another förskola?',done:false},
+  ]},
+  {section:'Community intel',tasks:[
+    {text:'Post in Desi Stockholm / Indians in Stockholm Facebook group',hint:'Ask specifically about Täby schools and Hägerneholm experience',done:false},
+    {text:'Search South Asians in Sweden for Täby threads',done:false},
+    {text:'Ask your mom friend if she has contacts already in Täby',done:false},
+  ]},
+];
+function buildCL(){
+  var w=document.getElementById('cl-wrap');
+  var h='';
+  items.forEach(function(s,si){
+    h+='<div class="cl-section"><div class="cl-section-title">'+s.section+'</div>';
+    s.tasks.forEach(function(t,ti){
+      h+='<div class="cl-item" onclick="tog('+si+','+ti+')">';
+      h+='<div class="cl-box'+(t.done?' done':'')+'" id="b'+si+'-'+ti+'"><span class="cl-check">✓</span></div>';
+      h+='<div class="cl-body">';
+      h+='<div class="cl-text'+(t.done?' done':'')+'" id="t'+si+'-'+ti+'">'+t.text+'</div>';
+      if(t.hint)h+='<div class="cl-hint">'+t.hint+'</div>';
+      if(t.link)h+='<a class="cl-link" href="'+t.link+'" target="_blank">Open →</a>';
+      h+='</div></div>';
+    });
+    h+='</div>';
+  });
+  w.innerHTML=h;
+  updateP();
+}
+function tog(si,ti){
+  items[si].tasks[ti].done=!items[si].tasks[ti].done;
+  var d=items[si].tasks[ti].done;
+  document.getElementById('b'+si+'-'+ti).className='cl-box'+(d?' done':'');
+  document.getElementById('t'+si+'-'+ti).className='cl-text'+(d?' done':'');
+  updateP();
+}
+function updateP(){
+  var tot=0,d=0;
+  items.forEach(function(s){s.tasks.forEach(function(t){tot++;if(t.done)d++;})});
+  var pct=Math.round(d/tot*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-text').textContent=d+' of '+tot+' done';
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+buildCL();
+
+function copyText(){
+  var t=document.getElementById('share-text').textContent;
+  navigator.clipboard.writeText(t).then(function(){
+    var b=document.getElementById('copy-btn');
+    b.textContent='Copied!';b.classList.add('copied');
+    setTimeout(function(){b.textContent='Copy to clipboard';b.classList.remove('copied');},2500);
+  });
+}
+</script>
+</body>
+</html>
